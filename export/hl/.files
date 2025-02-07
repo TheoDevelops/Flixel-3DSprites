@@ -1,0 +1,12 @@
+export/hl/bin/assets/data/data-goes-here.txt
+export/hl/bin/assets/images/cat.png
+export/hl/bin/assets/images/images-go-here.txt
+export/hl/bin/assets/music/music-goes-here.txt
+export/hl/bin/assets/sounds/sounds-go-here.txt
+export/hl/bin/flixel/sounds/beep.ogg
+export/hl/bin/flixel/sounds/flixel.ogg
+export/hl/bin/flixel/fonts/nokiafc22.ttf
+export/hl/bin/flixel/fonts/monsterrat.ttf
+export/hl/bin/flixel/images/ui/button.png
+export/hl/bin/flixel/images/logo/default.png
+export/hl/bin/manifest/default.json
