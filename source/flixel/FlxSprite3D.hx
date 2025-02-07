@@ -4,6 +4,7 @@ import flixel.FlxCamera;
 import flixel.graphics.frames.FlxFrame.FlxFrameType;
 import flixel.graphics.tile.FlxDrawTrianglesItem.DrawData;
 import flixel.math.FlxMath;
+import flixel.math.FlxPoint;
 import flixel.math.FlxVelocity;
 import flixel.util.Flx3DTransforms;
 import haxe.ds.Vector as HaxeVector;
@@ -14,7 +15,12 @@ import openfl.geom.Vector3D;
  * using perspective projection and rotation. This class allows
  * sprites to have depth (`z` axis), rotation in 3D space, and 
  * movement with acceleration, velocity, and drag in all three axes.
- *
+ * This also works as a normal FlxSprite, you can add offsets,
+ * modify the origin, scale, velocity, or whatever and it wont break
+ * or look different to a normal sprite.
+ * Note: `graphic` doesnt represent the rotated graphic so functions
+ * like `FlxCollision.pixelPerfectCheck` won't work when using depth.
+ * 
  * Features:
  * - 3D position (`x`, `y`, `z`) with velocity and acceleration.
  * - 3D rotation (`angle3D`) with angular velocity and drag.
@@ -163,9 +169,6 @@ class FlxSprite3D extends FlxSprite
 	 * This function applies perspective projection and rotation transformations 
 	 * to a flat sprite to simulate depth, keeping all the sprite's and cameras's
 	 * transformations.
-	 *
-	 * TODO: Add the 2d sprite transformations (sprite.offset, sprite.origin)
-	 * and the camera transformations (camera.zoom, camera.scroll, camera.alpha, camera.antialiasing).
 	 * @param camera The `FlxCamera` instance used to render the sprite.
 	 */
 	private function __drawSprite3D(camera:FlxCamera):Void
@@ -174,7 +177,7 @@ class FlxSprite3D extends FlxSprite
 
 		var depthScale = 1 / depth;
 		var planeWidth = frame.frame.width * scale.x * .5;
-		var planeHeight = frame.frame.width * scale.y * .5;
+		var planeHeight = frame.frame.height * scale.y * .5;
 
 		// plane vertices
 		var planeVertices = [
@@ -196,9 +199,21 @@ class FlxSprite3D extends FlxSprite
 			__position3D.setTo(planeVertices[vertPointer], planeVertices[vertPointer + 1], depth);
 			__angle3D.setTo(angle3D.x, angle3D.y, angle + angle3D.z);
 
+			final relativeOrigin = FlxPoint.get(origin.x - ((frame.frame.width * .5)), origin.y - ((frame.frame.height * .5)));
+			final relativeOffset = FlxPoint.get(offset.x - (frameWidth - width) * 0.5, offset.y - (frameHeight - height) * 0.5);
+
+			__position3D.x += relativeOrigin.x;
+			__position3D.y += relativeOrigin.y;
+
 			// The result of the vert rotation
 			final rotation = Flx3DTransforms.rotation3D(__position3D, __angle3D);
 			rotation.z *= 0.005;
+
+			getScreenPosition(_point, camera).subtract(x, y).subtract(relativeOffset.x, relativeOffset.y);
+			_point.add(relativeOrigin.x, relativeOrigin.y);
+
+			rotation.x -= _point.x;
+			rotation.y -= _point.y;
 
 			// The result of the perspective projection
 			final projection = Flx3DTransforms.project3D(rotation, new Vector3D());
@@ -211,6 +226,9 @@ class FlxSprite3D extends FlxSprite
 
 			// Stores depth from this vert to use it for perspective correction on uv's
 			projectionZ[Math.floor(vertPointer / 2)] = Math.max(0.0001, projection.z);
+
+			relativeOrigin.put();
+			relativeOffset.put();
 
 			vertPointer += 2;
 		}
@@ -238,6 +256,7 @@ class FlxSprite3D extends FlxSprite
 			uvRectangle.x,      uvRectangle.height, 1 / projectionZ[2], // top left
 			uvRectangle.width,  uvRectangle.height, 1 / projectionZ[3]  // bottom right
 		]);
+
 
 		camera.drawTriangles(
 			graphic, vertices,
