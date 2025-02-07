@@ -33,7 +33,7 @@ class FlxSprite3D extends FlxSprite
 	 * This value determines how far the sprite is positioned along the Z-axis,
 	 * affecting perspective calculations.
 	 */
-	public var z:Float;
+	public var z(default, set):Float;
 
 	/**
 	 * The basic speed of this object (in pixels per second) in the z axis.
@@ -153,7 +153,7 @@ class FlxSprite3D extends FlxSprite
 		z += delta;
 	}
 
-	function set_z(value:Float):Float
+	inline function set_z(value:Float):Float
 	{
 		return z = Math.max(value, -1000);
 	}
