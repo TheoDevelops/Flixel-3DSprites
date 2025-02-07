@@ -18,8 +18,6 @@ class PlayState extends FlxState
 		sprite.setGraphicSize(200, 200);
 		sprite.updateHitbox();
 		sprite.screenCenter();
-
-		sprite.z = 1;
 		add(sprite);
 	}
 
@@ -27,8 +25,5 @@ class PlayState extends FlxState
 	{
 		super.update(elapsed);
 
-		sprite.angle3D.x += 25 * elapsed;
-		sprite.angle3D.z += 50 * elapsed;
-		sprite.angle3D.y += 30 * elapsed;
 	}
 }

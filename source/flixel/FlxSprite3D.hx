@@ -3,6 +3,7 @@ package flixel;
 import flixel.FlxCamera;
 import flixel.graphics.frames.FlxFrame.FlxFrameType;
 import flixel.graphics.tile.FlxDrawTrianglesItem.DrawData;
+import flixel.math.FlxMath;
 import flixel.math.FlxVelocity;
 import flixel.util.Flx3DTransforms;
 import haxe.ds.Vector as HaxeVector;
@@ -25,13 +26,14 @@ import openfl.geom.Vector3D;
 @:access(flixel.FlxCamera)
 class FlxSprite3D extends FlxSprite
 {
+	static var DEPTH_SCALE:Float = 0.001;
 	/**
 	 * Represents the depth (Z-axis position) of the sprite in 3D space.
 	 * 
 	 * This value determines how far the sprite is positioned along the Z-axis,
 	 * affecting perspective calculations.
 	 */
-	public var z(default, set):Float;
+	public var z:Float;
 
 	/**
 	 * The basic speed of this object (in pixels per second) in the z axis.
@@ -99,12 +101,6 @@ class FlxSprite3D extends FlxSprite
 	@:noCompletion private var __position3D:Vector3D = new Vector3D();
 	@:noCompletion private var __angle3D:Vector3D = new Vector3D();
 
-	function set_z(value:Float):Float
-	{
-		depthFactor = 1 / value;
-		return z = value;
-	}
-
 	override function draw()
 	{
 		checkEmptyFrame();
@@ -157,6 +153,11 @@ class FlxSprite3D extends FlxSprite
 		z += delta;
 	}
 
+	function set_z(value:Float):Float
+	{
+		return z = Math.max(value, -1000);
+	}
+
 	/**
 	 * Renders a 3D-like sprite using triangles (using `FlxCamera.drawTriangles()`). 
 	 * This function applies perspective projection and rotation transformations 
@@ -169,7 +170,9 @@ class FlxSprite3D extends FlxSprite
 	 */
 	private function __drawSprite3D(camera:FlxCamera):Void
 	{
-		var depthScale = 1 * depthFactor;
+		final depth = 1 + (z * 0.001);
+
+		var depthScale = 1 / depth;
 		var planeWidth = frame.frame.width * scale.x * .5;
 		var planeHeight = frame.frame.width * scale.y * .5;
 
@@ -190,7 +193,7 @@ class FlxSprite3D extends FlxSprite
 		var vertPointer:Int = 0;
 		do
 		{
-			__position3D.setTo(planeVertices[vertPointer], planeVertices[vertPointer + 1], 0);
+			__position3D.setTo(planeVertices[vertPointer], planeVertices[vertPointer + 1], depth);
 			__angle3D.setTo(angle3D.x, angle3D.y, angle + angle3D.z);
 
 			// The result of the vert rotation
@@ -207,7 +210,7 @@ class FlxSprite3D extends FlxSprite
 			planeVertices[vertPointer + 1] = rotation.y + (y + planeHeight);
 
 			// Stores depth from this vert to use it for perspective correction on uv's
-			projectionZ[Math.floor(vertPointer / 2)] = Math.max(0.001, projection.z);
+			projectionZ[Math.floor(vertPointer / 2)] = Math.max(0.0001, projection.z);
 
 			vertPointer += 2;
 		}
