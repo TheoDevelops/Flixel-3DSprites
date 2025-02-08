@@ -175,8 +175,6 @@ class FlxSprite3D extends FlxSprite
 	 * 
 	 * @param planeWidth The half-width of the plane.
 	 * @param planeHeight The half-height of the plane.
-	 * @param flipX Whether to flip the plane horizontally.
-	 * @param flipY Whether to flip the plane vertically.
 	 * @return An array of Float values representing the vertex positions.
 	 */
 	private function getGraphicVertices(planeWidth:Float, planeHeight:Float)
