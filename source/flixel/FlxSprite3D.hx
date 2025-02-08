@@ -165,6 +165,44 @@ class FlxSprite3D extends FlxSprite
 	}
 
 	/**
+	 * Generates the vertex positions for a rectangular plane, 
+	 * taking into account `flipX` and `flipY` transformations.
+	 * 
+	 * The function returns the four corner points of a 2D plane 
+	 * centered at (0,0), where `planeWidth` and `planeHeight` define 
+	 * its dimensions. If `flipX` or `flipY` are enabled, the 
+	 * corresponding axis values are inverted.
+	 * 
+	 * @param planeWidth The half-width of the plane.
+	 * @param planeHeight The half-height of the plane.
+	 * @param flipX Whether to flip the plane horizontally.
+	 * @param flipY Whether to flip the plane vertically.
+	 * @return An array of Float values representing the vertex positions.
+	 */
+	private function getGraphicVertices(planeWidth:Float, planeHeight:Float)
+	{
+		var x1 = flipX ? planeWidth : -planeWidth;
+		var x2 = flipX ? -planeWidth : planeWidth;
+		var y1 = flipY ? planeHeight : -planeHeight;
+		var y2 = flipY ? -planeHeight : planeHeight;
+
+		return [
+			// top left
+			x1,
+			y1,
+			// top right
+			x2,
+			y1,
+			// bottom left
+			x1,
+			y2,
+			// bottom right
+			x2,
+			y2
+		];
+	}
+
+	/**
 	 * Renders a 3D-like sprite using triangles (using `FlxCamera.drawTriangles()`). 
 	 * This function applies perspective projection and rotation transformations 
 	 * to a flat sprite to simulate depth, keeping all the sprite's and cameras's
@@ -181,16 +219,7 @@ class FlxSprite3D extends FlxSprite
 		var planeHeight = frame.frame.height * scale.y * .5;
 
 		// plane vertices
-		var planeVertices = [
-			// top left
-			-planeWidth, -planeHeight,
-			// top right
-			planeWidth, -planeHeight,
-			// bottom left
-			-planeWidth, planeHeight,
-			// bottom right
-			planeWidth, planeHeight
-		];
+		var planeVertices = getGraphicVertices(planeWidth, planeHeight);
 
 		var view3D:Bool = camera is FlxCamera3D;
 		var viewCamera:Null<FlxCamera3D> = view3D ? cast camera : null;
