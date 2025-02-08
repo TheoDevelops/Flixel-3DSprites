@@ -173,7 +173,8 @@ class FlxSprite3D extends FlxSprite
 	 */
 	private function __drawSprite3D(camera:FlxCamera):Void
 	{
-		final depth = 1 + (z * 0.001);
+		final projectionDepth = z;
+		final depth = 1 + (projectionDepth * 0.001);
 
 		var depthScale = 1 / depth;
 		var planeWidth = frame.frame.width * scale.x * .5;
@@ -191,12 +192,15 @@ class FlxSprite3D extends FlxSprite
 			planeWidth, planeHeight
 		];
 
+		var view3D:Bool = camera is FlxCamera3D;
+		var viewCamera:Null<FlxCamera3D> = view3D ? cast camera : null;
+
 		var projectionZ:HaxeVector<Float> = new HaxeVector(Math.ceil(planeVertices.length / 2));
 
 		var vertPointer:Int = 0;
 		do
 		{
-			__position3D.setTo(planeVertices[vertPointer], planeVertices[vertPointer + 1], depth);
+			__position3D.setTo(planeVertices[vertPointer], planeVertices[vertPointer + 1], 0);
 			__angle3D.setTo(angle3D.x, angle3D.y, angle + angle3D.z);
 
 			final relativeOrigin = FlxPoint.get(origin.x - ((frameWidth * .5)), origin.y - ((frameHeight * .5)));
@@ -206,8 +210,7 @@ class FlxSprite3D extends FlxSprite
 			__position3D.y += relativeOrigin.y * scale.y;
 
 			// The result of the vert rotation
-			final rotation = Flx3DTransforms.rotation3D(__position3D, __angle3D);
-			rotation.z *= 0.005;
+			var rotation = Flx3DTransforms.rotation3D(__position3D, __angle3D);
 
 			getScreenPosition(_point, camera).subtract(x, y).subtract(-relativeOffset.x, -relativeOffset.y);
 			_point.add(-relativeOrigin.x * scale.x, -relativeOrigin.y * scale.y);
@@ -215,14 +218,25 @@ class FlxSprite3D extends FlxSprite
 			rotation.x -= _point.x;
 			rotation.y -= _point.y;
 
-			// The result of the perspective projection
-			final projection = Flx3DTransforms.project3D(rotation, new Vector3D());
-			projection.x = projection.x * depthScale;
-			projection.y = projection.y * depthScale;
+			var graphicPos = new Vector3D(x + planeWidth, y + planeHeight);
+			var absVector = rotation.add(graphicPos);
+
+			if (view3D)
+			{
+				final half = new Vector3D(FlxG.width * .5, FlxG.height * .5);
+
+				absVector.z += projectionDepth;
+				absVector = viewCamera.applyViewTo(absVector.subtract(half)).add(half);
+				absVector.z -= 1;
+				absVector.z *= 0.001;
+			}
+
+			// The result of the perspective projection of rotation
+			final projection = Flx3DTransforms.project3D(absVector);
 			__position3D.copyFrom(projection);
 
-			planeVertices[vertPointer] = rotation.x + (x + planeWidth);
-			planeVertices[vertPointer + 1] = rotation.y + (y + planeHeight);
+			planeVertices[vertPointer] = projection.x;
+			planeVertices[vertPointer + 1] = projection.y;
 
 			// Stores depth from this vert to use it for perspective correction on uv's
 			projectionZ[Math.floor(vertPointer / 2)] = Math.max(0.0001, projection.z);
