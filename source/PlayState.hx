@@ -44,12 +44,15 @@ class PlayState extends FlxState
 
 	override public function update(elapsed:Float)
 	{
-		super.update(elapsed);
+		var rotationSpeed = 50 * elapsed;
 
 		sprite3DGroup.sort((_, a, b) ->
 		{
 			return Math.round(a.z - b.z);
 		});
+
+		camera3D.yaw = (FlxG.mouse.screenX - FlxG.width / 2) * rotationSpeed * 0.001;
+		camera3D.pitch = (FlxG.mouse.screenY - FlxG.height / 2) * rotationSpeed * 0.001;
 
 		// MOVE CODE
 		var mult = 200 * elapsed;
@@ -67,18 +70,6 @@ class PlayState extends FlxState
 		if (FlxG.keys.pressed.D)
 			camera3D.moveRight(1 * mult);
 
-		// ANGLE MOVE CODE
-		if (FlxG.keys.pressed.RIGHT)
-			camera3D.yaw += elapsed;
-		if (FlxG.keys.pressed.LEFT)
-			camera3D.yaw -= elapsed;
-		if (FlxG.keys.pressed.UP)
-			camera3D.pitch += elapsed;
-		if (FlxG.keys.pressed.DOWN)
-			camera3D.pitch -= elapsed;
-		if (FlxG.keys.pressed.Z)
-			camera3D.roll += elapsed;
-		if (FlxG.keys.pressed.X)
-			camera3D.roll -= elapsed;
+		super.update(elapsed);
 	}
 }

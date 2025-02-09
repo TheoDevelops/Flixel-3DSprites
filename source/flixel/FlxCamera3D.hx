@@ -80,6 +80,8 @@ class FlxCamera3D extends FlxCamera
     @:noCompletion private var __viewMatrix(default, null):Matrix3D = new Matrix3D();
     @:noCompletion private var __rotationMatrix(default, null):Matrix3D = new Matrix3D();
 
+	private var dirty3D:Bool = false;
+
     /**
      * Updates the camera's view matrix based on its position and rotation.
      * 
@@ -143,9 +145,10 @@ class FlxCamera3D extends FlxCamera
      * var viewPos = applyViewTo(worldPos);
      * ```
      */
-    private function applyViewTo(vector:Vector3D)
+	private function applyViewTo(vector:Vector3D, ?origin:Vector3D = null)
     {
-        return __viewMatrix.transformVector(vector);
+		var reference = origin != null ? origin : eyePos.add(new Vector3D(FlxG.width / 2, FlxG.height / 2));
+		return __viewMatrix.transformVector(vector.subtract(reference)).add(reference);
     }
 
     // some helpers lol
@@ -155,8 +158,7 @@ class FlxCamera3D extends FlxCamera
         forward.normalize();
         forward.scaleBy(amount);
         eyePos.incrementBy(forward);
-        lookAt.incrementBy(forward);
-        updateCameraView();
+		lookAt.incrementBy(forward);
     }
 
     public function moveRight(amount:Float):Void
@@ -165,8 +167,7 @@ class FlxCamera3D extends FlxCamera
         right.normalize();
         right.scaleBy(amount);
         eyePos.incrementBy(right);
-        lookAt.incrementBy(right);
-        updateCameraView();
+		lookAt.incrementBy(right);
     }
 
     public function moveUp(amount:Float):Void
@@ -175,14 +176,14 @@ class FlxCamera3D extends FlxCamera
         moveUp.normalize();
         moveUp.scaleBy(amount);
         eyePos.incrementBy(moveUp);
-        lookAt.incrementBy(moveUp);
-        updateCameraView();
+		lookAt.incrementBy(moveUp);
     }
 
     override public function update(elapsed:Float)
     {
         super.update(elapsed);
 
-        updateCameraView();
+		if (!dirty3D)
+			updateCameraView();
     }
 }

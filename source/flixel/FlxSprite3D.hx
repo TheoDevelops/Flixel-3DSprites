@@ -230,17 +230,12 @@ class FlxSprite3D extends FlxSprite
 			__position3D.setTo(planeVertices[vertPointer], planeVertices[vertPointer + 1], 0);
 			__angle3D.setTo(angle3D.x, angle3D.y, angle + angle3D.z);
 
-			final relativeOrigin = FlxPoint.get(origin.x - ((frameWidth * .5)), origin.y - ((frameHeight * .5)));
 			final relativeOffset = FlxPoint.get(offset.x - (frameWidth - width) * 0.5, offset.y - (frameHeight - height) * 0.5);
-
-			__position3D.x += relativeOrigin.x * scale.x;
-			__position3D.y += relativeOrigin.y * scale.y;
 
 			// The result of the vert rotation
 			var rotation = Flx3DTransforms.rotation3D(__position3D, __angle3D);
 
 			getScreenPosition(_point, camera).subtract(x, y).subtract(-relativeOffset.x, -relativeOffset.y);
-			_point.add(-relativeOrigin.x * scale.x, -relativeOrigin.y * scale.y);
 
 			rotation.x -= _point.x;
 			rotation.y -= _point.y;
@@ -250,10 +245,8 @@ class FlxSprite3D extends FlxSprite
 
 			if (view3D)
 			{
-				final half = new Vector3D(FlxG.width * .5, FlxG.height * .5);
-
 				absVector.z += projectionDepth;
-				absVector = viewCamera.applyViewTo(absVector.subtract(half)).add(half);
+				absVector = viewCamera.applyViewTo(absVector);
 				absVector.z -= 1;
 				absVector.z *= 0.001;
 			}
@@ -268,7 +261,6 @@ class FlxSprite3D extends FlxSprite
 			// Stores depth from this vert to use it for perspective correction on uv's
 			projectionZ[Math.floor(vertPointer / 2)] = Math.max(0.0001, projection.z);
 
-			relativeOrigin.put();
 			relativeOffset.put();
 
 			vertPointer += 2;

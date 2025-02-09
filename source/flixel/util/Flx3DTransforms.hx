@@ -1,6 +1,7 @@
 package flixel.util;
 
 import flixel.math.FlxPoint;
+import openfl.geom.Matrix3D;
 import openfl.geom.Vector3D;
 
 /**
@@ -22,6 +23,12 @@ class Flx3DTransforms {
     static var near:Int = 0;
 	static var far:Int = 1;
 	static var range:Int = -1;
+
+	/**
+	 * We will no longer use the Euler angles rotation,
+	 * butrotation matrix !! (NO MORE GIMBAL LOCK !!)
+	 */
+	@:noCompletion static final __rotationMatrix:Matrix3D = new Matrix3D();
     
     /**
      * Applies a 3D rotation to a vector using rotations around the X, Y, and Z axes.
@@ -32,24 +39,16 @@ class Flx3DTransforms {
      */
     inline static public function rotation3D(input:Vector3D, angle:Vector3D)
     {
-        if (angle.length == 0)
+		if (angle.x == 0 || angle.y == 0 || angle.z == 0)
 			return input;
 
-        // converting the angle from Degrees to Radeans
-		angle.scaleBy(RADEANS);
+		__rotationMatrix.identity();
+		// this should be fine
+		__rotationMatrix.appendRotation(angle.z, Vector3D.Z_AXIS);
+		__rotationMatrix.appendRotation(angle.y, Vector3D.Y_AXIS);
+		__rotationMatrix.appendRotation(angle.x, Vector3D.X_AXIS);
 
-        // rotating the input around every axis (X, Y, Z)
-		var zAxis = rotate2D(input.x, input.y, angle.z);
-		var yAxis = rotate2D(zAxis.x, input.z, angle.y);
-		var xAxis = rotate2D(yAxis.y, zAxis.y, angle.x);
-
-        input.setTo(yAxis.x, xAxis.y, xAxis.x);
-
-        zAxis.putWeak();
-        yAxis.putWeak();
-        xAxis.putWeak();
-
-		return input;
+		return __rotationMatrix.transformVector(input);
     }
     
     /**
